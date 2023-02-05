@@ -7,6 +7,8 @@ Workspace 별로 나누어서 인프라를 관리 할 수 있기 때문에 환�
 ## Infrastructures
 크게 VPC, Public / Private Subnets 로 구성하며 Public Subnet 에는 Private Subnet에 요청 응답 서빙을 담당하는 서비스들이, Private Subnet 에는 각 인스턴스들(ECS, EKS, EB 와 같은..)을 배포 합니다.
 
+![kemi-infra drawio (1)](https://user-images.githubusercontent.com/25698674/216813370-a03bfbd8-3f32-4071-8ee8-e5dcf9b87b00.png)
+
 - Route 53
     - ACM
 - VPC
