@@ -4,7 +4,7 @@ resource "aws_s3_bucket" "log_storage" {
 }
 
 resource "aws_cloudwatch_log_group" "service" {
-  name = "awslogs-service-staging"
+  name = "awslogs-service-staging-${var.env_suffix}"
 
   tags = {
     Environment = "staging"
@@ -92,7 +92,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "lifecycle" {
   bucket = aws_s3_bucket.log_storage.id
 
   rule {
-    id      = "log_lifecycle"
+    id      = "log_lifecycle_${var.env_suffix}"
     status  = "Enabled"
 
     expiration {

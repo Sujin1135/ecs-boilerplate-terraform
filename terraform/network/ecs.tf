@@ -13,7 +13,7 @@ data "aws_iam_policy_document" "ecs_task_execution_role" {
 }
 
 resource "aws_iam_role" "ecs_task_execution_role" {
-  name               = "ecs-staging-execution-role"
+  name               = "ecs-staging-execution-role-${var.env_suffix}"
   assume_role_policy = data.aws_iam_policy_document.ecs_task_execution_role.json
 }
 
@@ -22,9 +22,9 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_role" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
-
 data "template_file" "service" {
   template = file(var.tpl_path)
+
   vars = {
     region             = var.region
     aws_ecr_repository = aws_ecr_repository.repo.repository_url
@@ -32,17 +32,19 @@ data "template_file" "service" {
     container_port     = var.container_port
     host_port          = var.host_port
     app_name           = var.app_name
+    env_suffix         = var.env_suffix
   }
 }
 
 resource "aws_ecs_task_definition" "service" {
-  family                   = "service-staging"
+  family                   = "service-staging-${var.env_suffix}"
   network_mode             = "awsvpc"
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
   cpu                      = 256
   memory                   = 512
   requires_compatibilities = ["FARGATE"]
   container_definitions    = data.template_file.service.rendered
+
   tags = {
     Environment = "staging"
     Application = var.app_name
@@ -50,20 +52,20 @@ resource "aws_ecs_task_definition" "service" {
 }
 
 resource "aws_ecs_cluster" "staging" {
-  name = "service-ecs-cluster"
+  name = "service-ecs-cluster-${var.env_suffix}"
 }
 
 resource "aws_ecs_service" "staging" {
-  name            = "staging"
-  cluster         = aws_ecs_cluster.staging.id
-  task_definition = aws_ecs_task_definition.service.arn
-  desired_count   = 3
-  launch_type     = "FARGATE"
-
+  name                  = "staging"
+  cluster               = aws_ecs_cluster.staging.id
+  task_definition       = aws_ecs_task_definition.service.arn
+  desired_count         = length(data.aws_availability_zones.available.names)
+  force_new_deployment  = true
+  launch_type           = "FARGATE"
 
   network_configuration {
     security_groups  = [aws_security_group.ecs_tasks.id]
-    subnets          = var.aws_subnet_cluster_ids
+    subnets          = aws_subnet.private.*.id
     assign_public_ip = true
   }
 
@@ -73,7 +75,11 @@ resource "aws_ecs_service" "staging" {
     container_port   = var.container_port
   }
 
-  depends_on = [aws_lb_listener.https_forward, aws_lb_listener.http_forward, aws_iam_role_policy_attachment.ecs_task_execution_role]
+  depends_on = [
+    aws_lb_listener.https_forward,
+    aws_lb_listener.http_forward,
+    aws_iam_role_policy_attachment.ecs_task_execution_role,
+  ]
 
   tags = {
     Environment = "staging"

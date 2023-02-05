@@ -1,5 +1,10 @@
 resource "aws_ecr_repository" "repo" {
-  name = "mango/service"
+  name = "mango/service_${var.env_suffix}"
+  image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = false
+  }
 }
 
 resource "aws_ecr_lifecycle_policy" "repo-policy" {

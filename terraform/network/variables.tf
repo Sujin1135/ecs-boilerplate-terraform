@@ -31,3 +31,42 @@ variable "elb_account_id" {
 variable "domain" {
   type = string
 }
+
+variable "env_suffix" {
+  type = string
+  default = ""
+}
+
+variable "tpl_path" {
+  type = string
+}
+
+variable "container_port" {
+  type = number
+  default = 80
+}
+
+variable "host_port" {
+  type = number
+  default = 80
+}
+
+variable "az_count" {
+  type    = number
+  default = 4
+}
+
+variable "scaling_max_capacity" {
+  type = number
+  default = 3
+}
+
+variable "scaling_min_capacity" {
+  type = number
+  default = 1
+}
+
+variable "cpu_or_memory_limit" {
+  type = number
+  default = 70
+}
