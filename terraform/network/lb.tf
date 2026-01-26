@@ -18,7 +18,7 @@ resource "aws_alb" "staging" {
 }
 
 resource "aws_lb_listener" "https_forward" {
-  load_balancer_arn = aws_alb.staging.id
+  load_balancer_arn = aws_alb.staging.arn
   port              = 443
   protocol          = "HTTPS"
   certificate_arn   = aws_acm_certificate.cert.arn
